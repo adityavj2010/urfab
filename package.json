@@ -1,0 +1,22 @@
+{
+  "name": "urfab",
+  "version": "1.0.0",
+  "description": "Blockchain based dapp",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adityavj2010/urfab.git"
+  },
+  "author": "AJ",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/adityavj2010/urfab/issues"
+  },
+  "homepage": "https://github.com/adityavj2010/urfab#readme",
+  "dependencies": {
+    "truffle": "^5.4.21"
+  }
+}
