@@ -1,7 +1,7 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-abstract contract ERC20Interface {
+abstract contract ERC20 {
     function totalSupply() virtual public view returns (uint);
     function balanceOf(address tokenOwner) virtual public view returns (uint balance);
     function allowance(address tokenOwner, address spender) virtual public view returns (uint remaining);
