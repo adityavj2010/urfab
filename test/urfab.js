@@ -5,9 +5,31 @@ const urfab = artifacts.require("UrFabToken");
  * Ethereum client
  * See docs: https://www.trufflesuite.com/docs/truffle/testing/writing-tests-in-javascript
  */
-contract("urfab", function (/* accounts */) {
-  it("should assert true", async function () {
-    await urfab.deployed();
-    return assert.isTrue(true);
+contract("URFAB", async function (accounts) {
+  const ownerAddress = accounts[0]
+  it("Verify owner", async function () {
+    let urfabInstance = await urfab.deployed();
+    const address = await urfabInstance.owner.call();
+    return assert.equal(ownerAddress,address)
   });
+
+  it("Check initial balance", async function () {
+    let urfabInstance = await urfab.deployed();
+    const balance = await urfabInstance.totalSupply();
+    // console.log('accounts',accounts); 
+    return assert.equal(balance.toNumber(),100000000);
+  });
+
+  it("Check Token Symbol", async function () {
+    let urfabInstance = await urfab.deployed();
+    const symbol = await urfabInstance.symbol();
+    return assert.equal(symbol,"URFAB");
+  });
+
+  it("Check decimals", async function () {
+    let urfabInstance = await urfab.deployed();
+    const decimals = await urfabInstance.decimals();
+    return assert.equal(decimals,18);
+  });
+
 });
