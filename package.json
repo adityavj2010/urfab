@@ -4,7 +4,7 @@
   "description": "Blockchain based dapp",
   "main": "index.js",
   "scripts": {
-    "test": "truffle test",
+    "test": "truffle test --show-events",
     "migrate": "truffle migrate --clean"
   },
   "repository": {
