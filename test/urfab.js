@@ -81,26 +81,26 @@ contract("URFAB", async function (accounts) {
 
   it("Verify product creation", async function () {
     let urfabInstance = await urfab.deployed();
-    // string memory productName,
+    // string memory productCode,
     // uint256 productCost,
     // uint256 productCount
-    const productName = "Food",
+    const productCode = 1234,
       productCost = 10,
       productCount = 100;
     let productId = await urfabInstance.createProduct.call(
-      productName,
+      productCode,
       productCost,
       productCount
     );
     console.log(productId.toNumber())
     productId = await urfabInstance.createProduct.call(
-      productName,
+      productCode,
       productCost,
       productCount
     );
     console.log(productId.toNumber())
     productId = await urfabInstance.createProduct.call(
-      productName,
+      productCode,
       productCost,
       productCount
     );

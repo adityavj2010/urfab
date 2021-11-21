@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.4.22 <0.9.0;
+pragma solidity ^0.8.0;
 import "./ERC20.sol";
 import "./Owned.sol";
 import "./SafeMath.sol";
 
 contract MiscFunctionalities is SafeMath, Owned {
-    enum Roles {Inactive, Active}
-    enum productState {Neutral, Requested, Sold}
+    enum Roles{Inactive, Active}
+    enum productState{Neutral, Requested, Sold}
 
     struct participant {
         uint256 userCodeName;
@@ -39,7 +39,7 @@ contract MiscFunctionalities is SafeMath, Owned {
     }
 
     // ProductId to Reviews mapping
-    mapping(uint256 => review) public productReviews;
+    mapping(uint256 => productReview) public productReviews;
 
     struct product {
         uint256 uniqueRegNumer;
@@ -52,12 +52,12 @@ contract MiscFunctionalities is SafeMath, Owned {
         productState status;
         address buyer;
         uint256 hashOfDetails;
-
-        review[] reviews;
     }
+    
+    mapping(uint256 => product) public products;
 
     function createProduct(
-        uint256 memory productCode,
+        uint256 productCode,
         uint256 productCost,
         uint256 productCount,
         uint256 participantId
@@ -70,7 +70,7 @@ contract MiscFunctionalities is SafeMath, Owned {
         products[productId].manufacturer = msg.sender;
         products[productId].productCount = productCount;
         products[productId].currentOwner = msg.sender;
-        products[productId].productState = productState.Neutral;
+        products[productId].status = productState.Neutral;
         participants[participantId].role = Roles.Active;
 
         emit ProductCreated(msg.sender, productCost, productCode, productCount, productId);
@@ -85,11 +85,11 @@ contract MiscFunctionalities is SafeMath, Owned {
         require(products[productId].currentOwner == msg.sender);
         products[productId].productCount = safeAdd(products[productId].productCount,productCount);
         products[productId].productCost = safeAdd(products[productId].productCost,productCost);
-        emit ProductUpdated(msg.sender, productCost, productCount, productCode, productId);
+        emit ProductUpdated(msg.sender, productCost, productCount, productId);
         return true;
     }
 
-    function getProduct(uint256 productId) public view onlyRegisteredParticipant() returns (uint256 memory,uint256,address,uint256) {
+    function getProduct(uint256 productId) public view onlyRegisteredParticipant() returns (uint256 ,uint256,address,address,uint256) {
         return (
             products[productId].productCode,            
             products[productId].productCost,
@@ -99,7 +99,7 @@ contract MiscFunctionalities is SafeMath, Owned {
         );
     }
 
-    function registerParticipant(uint256 memory userCodeName, Roles role) public returns (uint256) {
+    function registerParticipant(uint256 userCodeName, Roles role) public returns (uint256) {
         participantCounter++;
         uint256 participantId = participantCounter;
         participants[participantId].userCodeName = userCodeName;
@@ -123,7 +123,7 @@ contract MiscFunctionalities is SafeMath, Owned {
         if (products[productId].hashOfDetails == hash){
             products[productId].status=state;
             products[productId].currentOwner=products[productId].buyer;
-            emit ProductSold(products[productId].buyer, productCost, productCount, productCode, productId, hash, state);
+            emit ProductSold(products[productId].buyer, productCost, productCount, productId, hash, state);
         }
         else{
             revert();
@@ -139,14 +139,21 @@ contract MiscFunctionalities is SafeMath, Owned {
         productReviews[productId].parameter_3_rating = parameter_3_rating;
         productReviews[productId].overallRating = overallRating;
         productReviews[productId].productReviewNumber = productReviewCounter;
-        emit ProductReviewUpdated(msg.sender, parameter_1_rating, parameter_2_rating, parameter_3_rating, overallRating, productReviewCounter, productCost, productCount, productCode, productId);
+        emit ProductReviewUpdated(msg.sender, parameter_1_rating, parameter_2_rating, parameter_3_rating, overallRating, productReviewCounter, productId);
+        // emit ProductReviewUpdated(msg.sender, parameter_1_rating, parameter_2_rating, parameter_3_rating, overallRating, productReviewCounter, productCost, productCount, productCode, productId);
     }
-
-
+    
+    
     event ProductCreated(address owner, uint256 productCost, uint256 productCode, uint256 productCount, uint256 productId);
-    event ProductUpdated(address currentOwner, uint256 productCost, uint256 productCount, uint256 productCode, uint256 productId);
-    event ProductSold(address currentOwner, uint256 productCost, uint256 productCount, uint256 productCode, uint256 productId, uint256 hashOfDetails, productState productStatus);
-    event ProductReviewUpdated(address productReviewer, uint256 parameter_1_rating, uint256 parameter_2_rating, uint256 parameter_3_rating, uint256 overallRating, uint256 productReviewCounter, uint256 productCost, uint256 productCount, uint256 productCode, uint256 productId);
+    event ProductUpdated(address currentOwner, uint256 productCost, uint256 productCount, uint256 productId);
+    event ProductSold(address currentOwner, uint256 productCost, uint256 productCount, uint256 productId, uint256 hashOfDetails, productState productStatus);
+    event ProductReviewUpdated(address productReviewer, uint256 parameter_1_rating, uint256 parameter_2_rating, uint256 parameter_3_rating, uint256 overallRating, uint256 productReviewCounter, uint256 productId);
+
+
+    // event ProductCreated(address owner, uint256 productCost, uint256 productCode, uint256 productCount, uint256 productId);
+    // event ProductUpdated(address currentOwner, uint256 productCost, uint256 productCount, uint256 productCode, uint256 productId);
+    // event ProductSold(address currentOwner, uint256 productCost, uint256 productCount, uint256 productCode, uint256 productId, uint256 hashOfDetails, productState productStatus);
+    // event ProductReviewUpdated(address productReviewer, uint256 parameter_1_rating, uint256 parameter_2_rating, uint256 parameter_3_rating, uint256 overallRating, uint256 productReviewCounter, uint256 productCost, uint256 productCount, uint256 productCode, uint256 productId);
 
 }
 
