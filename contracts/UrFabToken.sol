@@ -128,10 +128,15 @@ contract MiscFunctionalities is SafeMath, Owned {
     }
 
 
-    function response(uint256 productId, productState state, uint256 hash, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public{
+    function response(uint256 productId, productState state, uint256 hash, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public payable{
         require(products[productId].currentOwner == msg.sender);
         if (products[productId].hashOfDetails == hash){
             products[productId].status=state;
+            
+            if (state == productState.Sold){
+                transferFrom(products[productId].buyer, products[productId].currentOwner, products[productId].productCost);
+            }
+            
             products[productId].currentOwner=products[productId].buyer;
             emit ProductSold(products[productId].buyer, productCost, productCount, productId, hash, state);
         }
