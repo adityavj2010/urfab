@@ -4,9 +4,14 @@ import "./ERC20.sol";
 import "./Owned.sol";
 import "./SafeMath.sol";
 
-contract MiscFunctionalities is SafeMath, Owned {
+contract UrfabCode is SafeMath, Owned {
     enum Roles{Inactive, Active}
     enum productState{Neutral, Requested, Sold}
+    UrFabToken public token;
+
+    constructor() public {
+        token = new UrFabToken();
+    }
 
     struct participant {
         uint256 userCodeName;
@@ -134,7 +139,7 @@ contract MiscFunctionalities is SafeMath, Owned {
             products[productId].status=state;
             
             if (state == productState.Sold){
-                transferFrom(products[productId].buyer, products[productId].currentOwner, products[productId].productCost);
+                token.transferFrom(products[productId].buyer, products[productId].currentOwner, products[productId].productCost);
             }
             
             products[productId].currentOwner=products[productId].buyer;
@@ -173,7 +178,7 @@ contract MiscFunctionalities is SafeMath, Owned {
 
 }
 
-contract UrFabToken is ERC20, MiscFunctionalities {
+contract UrFabToken is ERC20, SafeMath,Owned {
     string public symbol;
     string public name;
     uint8 public decimals;
