@@ -128,7 +128,7 @@ contract("URFAB", async function (accounts) {
     ).toNumber();
     console.log('userBalance',userBalance);
 
-    const r = await urfabInstance.response(1,2,1,1,1,1,{from:user1});
+    const r = await urfabInstance.response(1,2,1,1,1,1);
     console.log(r)
 
   })
