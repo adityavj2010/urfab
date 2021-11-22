@@ -10,14 +10,15 @@ contract MiscFunctionalities is SafeMath, Owned {
 
     struct participant {
         uint256 userCodeName;
-        address addr;
+        address participantAddress;
+        uint256 participantId;
         Roles role;
         bool isRegistered;
     }
 
     uint256 participantCounter = 0;
 
-    mapping(uint256 => participant) public participants;
+    mapping(address => participant) public participants;
     mapping (address=>uint) membership;
     
     modifier onlyRegisteredParticipant()
@@ -36,10 +37,14 @@ contract MiscFunctionalities is SafeMath, Owned {
         uint256 parameter_3_rating;
         uint256 overallRating;
         uint256 productReviewNumber;
+        uint256 productId;
     }
 
-    // ProductId to Reviews mapping
-    mapping(uint256 => productReview) public productReviews;
+    // ProductId_ReviewNumber to Reviews mapping
+    // mapping(uint256 => productReview) public productReviews;
+    
+    // ProductId to ReviewNumber to Reviews mapping
+    mapping(uint256 => mapping(uint256 => productReview)) public productReviews;
 
     struct product {
         uint256 uniqueRegNumer;
@@ -59,8 +64,7 @@ contract MiscFunctionalities is SafeMath, Owned {
     function createProduct(
         uint256 productCode,
         uint256 productCost,
-        uint256 productCount,
-        uint256 participantId
+        uint256 productCount
         
     ) public onlyRegisteredParticipant() returns (uint256) {
         productCounter++;
@@ -71,11 +75,12 @@ contract MiscFunctionalities is SafeMath, Owned {
         products[productId].productCount = productCount;
         products[productId].currentOwner = msg.sender;
         products[productId].status = productState.Neutral;
-        participants[participantId].role = Roles.Active;
+        address participantAddress = msg.sender;
+        participants[participantAddress].role = Roles.Active;
 
         emit ProductCreated(msg.sender, productCost, productCode, productCount, productId);
 
-        return productId;
+        return (productId);
     }
 
     function updateProduct(uint256 productId, uint256 productCount, uint256 productCost, uint256 productCode)
@@ -86,35 +91,40 @@ contract MiscFunctionalities is SafeMath, Owned {
         products[productId].productCount = safeAdd(products[productId].productCount,productCount);
         products[productId].productCost = safeAdd(products[productId].productCost,productCost);
         emit ProductUpdated(msg.sender, productCost, productCount, productId);
-        return true;
+        return (true);
     }
 
-    function getProduct(uint256 productId) public view onlyRegisteredParticipant() returns (uint256 ,uint256,address,address,uint256) {
+    function getProduct(uint256 productId) public view onlyRegisteredParticipant() returns (uint256 ,uint256,address,address,uint256, productState, address) {
         return (
             products[productId].productCode,            
             products[productId].productCost,
             products[productId].manufacturer,
             products[productId].currentOwner,
-            products[productId].productCount
+            products[productId].productCount,
+            products[productId].status,
+            products[productId].buyer
         );
     }
 
     function registerParticipant(uint256 userCodeName, Roles role) public returns (uint256) {
         participantCounter++;
         uint256 participantId = participantCounter;
-        participants[participantId].userCodeName = userCodeName;
-        participants[participantId].addr = msg.sender;
-        participants[participantId].role = role;
-        participants[participantId].isRegistered = true;
+        address participantAddress = msg.sender;
+        participants[participantAddress].userCodeName = userCodeName;
+        participants[participantAddress].participantAddress = msg.sender;
+        participants[participantAddress].participantId = participantId;
+        participants[participantAddress].role = role;
+        participants[participantAddress].isRegistered = true;
         membership[msg.sender] = 1;
-        return participantId;
+        return (participantId);
     }
 
-    function request(address buyer, uint256 productId, uint256 hash, uint256 participantId) onlyRegisteredParticipant public{
+    function request( uint256 productId, uint256 hash) onlyRegisteredParticipant public{
         products[productId].status=productState.Requested;
         products[productId].buyer=msg.sender;
         products[productId].hashOfDetails = hash; 
-        participants[participantId].role = Roles.Active;
+        address participantAddress = msg.sender;
+        participants[participantAddress].role = Roles.Active;
     }
 
 
@@ -133,12 +143,13 @@ contract MiscFunctionalities is SafeMath, Owned {
     function addProductReview(uint256 productId, uint256 parameter_1_rating, uint256 parameter_2_rating, uint256 parameter_3_rating, uint256 overallRating, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public{
         require(products[productId].currentOwner == msg.sender);
         productReviewCounter++;
-        productReviews[productId].reviewer = msg.sender;
-        productReviews[productId].parameter_1_rating = parameter_1_rating;
-        productReviews[productId].parameter_2_rating = parameter_2_rating;
-        productReviews[productId].parameter_3_rating = parameter_3_rating;
-        productReviews[productId].overallRating = overallRating;
-        productReviews[productId].productReviewNumber = productReviewCounter;
+        productReviews[productId][productReviewCounter].reviewer = msg.sender;
+        productReviews[productId][productReviewCounter].parameter_1_rating = parameter_1_rating;
+        productReviews[productId][productReviewCounter].parameter_2_rating = parameter_2_rating;
+        productReviews[productId][productReviewCounter].parameter_3_rating = parameter_3_rating;
+        productReviews[productId][productReviewCounter].overallRating = overallRating;
+        productReviews[productId][productReviewCounter].productReviewNumber = productReviewCounter;
+        productReviews[productId][productReviewCounter].productId = productId;
         emit ProductReviewUpdated(msg.sender, parameter_1_rating, parameter_2_rating, parameter_3_rating, overallRating, productReviewCounter, productId);
         // emit ProductReviewUpdated(msg.sender, parameter_1_rating, parameter_2_rating, parameter_3_rating, overallRating, productReviewCounter, productCost, productCount, productCode, productId);
     }
