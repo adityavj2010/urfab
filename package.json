@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/adityavj2010/urfab#readme",
   "dependencies": {
+    "compression": "^1.7.4",
+    "express": "^4.17.1",
     "truffle": "^5.4.21"
   }
 }
