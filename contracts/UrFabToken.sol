@@ -158,6 +158,9 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         uint256 productCount
         
     ) public onlyRegisteredParticipant() returns (uint256) {
+        if(productCode == 0 || productCost == 0 || productCount == 0){
+            revert();
+        }
         productCounter++;
         uint256 productId = productCounter;
         products[productId].productCost = productCost;
@@ -181,6 +184,9 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         returns (bool)
     {
         require(products[productId].currentOwner == msg.sender);
+        if(productId == 0 || productCount == 0 || productCost == 0 || productCode == 0){
+            revert();
+        }
         products[productId].productCount = safeAdd(products[productId].productCount,productCount);
         products[productId].productCost = safeAdd(products[productId].productCost,productCost);
         emit ProductUpdated(msg.sender, productCost, productCount, productId);
@@ -189,6 +195,9 @@ contract UrFabToken is ERC20, SafeMath,Owned {
 
     function getProduct(uint256 productId) public view onlyRegisteredParticipant() returns (uint256 ,uint256,address,address,uint256, productState, address) {
         return (
+            if(productId == 0){
+            revert();
+            }
             products[productId].productCode,            
             products[productId].productCost,
             products[productId].manufacturer,
@@ -199,7 +208,10 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         );
     }
 
-    function registerParticipant(uint256 userCodeName, Roles role) public returns (uint256) {
+    function registerParticipant(uint256 userCodeName, Roles role = 0) public returns (uint256) {
+        if(userCodeName == 0){
+            revert();
+        }
         participantCounter++;
         uint256 participantId = participantCounter;
         address participantAddress = msg.sender;
@@ -212,7 +224,10 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         return (participantId);
     }
 
-    function request( uint256 productId, uint256 hash) onlyRegisteredParticipant public{
+    function request( uint256 productId) onlyRegisteredParticipant public{
+        if(productId == 0){
+            revert();
+        }
         products[productId].status=productState.Requested;
         products[productId].buyer=msg.sender;
         products[productId].hashOfDetails = hash; 
@@ -222,8 +237,11 @@ contract UrFabToken is ERC20, SafeMath,Owned {
     }
 
 
-    function response(uint256 productId, productState state, uint256 hash, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public payable{
+    function response(uint256 productId, productState state, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public payable{
         require(products[productId].currentOwner == msg.sender);
+        if(productId == 0 || state > 2 || productCount == 0 || productCost == 0 || productCode == 0){
+            revert();
+        }
         // if (products[productId].hashOfDetails == hash){
             products[productId].status=state;
              bool isTransacted = false;
@@ -249,6 +267,9 @@ contract UrFabToken is ERC20, SafeMath,Owned {
 
     function addProductReview(uint256 productId, uint256 parameter_1_rating, uint256 parameter_2_rating, uint256 parameter_3_rating, uint256 overallRating, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public{
         require(products[productId].currentOwner == msg.sender);
+        if (productId == 0 || parameter_1_rating == 0 || parameter_2_rating == 0 || parameter_3_rating == 0 || overallRating == 0 || productCount == 0 || productCost == 0 || productCode == 0){
+            revert();
+        }
         productReviewCounter++;
         productReviews[productId][productReviewCounter].reviewer = msg.sender;
         productReviews[productId][productReviewCounter].parameter_1_rating = parameter_1_rating;
@@ -265,18 +286,24 @@ contract UrFabToken is ERC20, SafeMath,Owned {
     //     revert();
     // }
 
-    function checkregistration(address participantAddress) public returns(uint256){
+    function checkregistration(address participantAddress) public view returns(uint256){
+        if(participantAddress == 0){
+            revert();
+        }
         if (participants[participantAddress].isRegistered){
             return participants[participantAddress].participantId
         }
         return 0
     }
 
-    function getProductAvailabilityIds() public returns(uint256[]){
+    function getProductAvailabilityIds() public view returns(uint256[]){
         return productsIdAvailable;
     }
 
-    function viewRequests(address participantAddress) public returns(uint256){
+    function viewRequests(address participantAddress) public view returns(uint256){
+        if(participantAddress == 0){
+            revert();
+        }
         return productRequestsForParticipant[msg.sender];
     }
 
