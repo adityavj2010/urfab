@@ -146,7 +146,11 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         uint256 hashOfDetails;
     }
     
+    uint256 productRequests[] = [];
     mapping(uint256 => product) public products;
+    mapping(address => productRequests) public productRequestsForParticipant;
+
+    uint256 productsIdAvailable[] = [];
 
     function createProduct(
         uint256 productCode,
@@ -164,6 +168,8 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         products[productId].status = productState.Neutral;
         address participantAddress = msg.sender;
         participants[participantAddress].role = Roles.Active;
+
+        productsIdAvailable.push(productId);
 
         emit ProductCreated(msg.sender, productCost, productCode, productCount, productId);
 
@@ -212,6 +218,7 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         products[productId].hashOfDetails = hash; 
         address participantAddress = msg.sender;
         participants[participantAddress].role = Roles.Active;
+        productRequestsForParticipant[product[productId].currentOwner].productRequests.push(productId);
     }
 
 
@@ -229,6 +236,9 @@ contract UrFabToken is ERC20, SafeMath,Owned {
                 products[productId].currentOwner=products[productId].buyer;
                 emit ProductSold(products[productId].buyer, productCost, productCount, productId, hash, state);
             }
+
+            delete productRequestsForParticipant[product[productId].currentOwner].productRequests[productId];
+
             // products[productId].currentOwner=products[productId].buyer;
             // emit ProductSold(products[productId].buyer, productCost, productCount, productId, hash, state);
         // }
@@ -254,6 +264,22 @@ contract UrFabToken is ERC20, SafeMath,Owned {
     // function () public payable{
     //     revert();
     // }
+
+    function checkregistration(address participantAddress) public returns(uint256){
+        if (participants[participantAddress].isRegistered){
+            return participants[participantAddress].participantId
+        }
+        return 0
+    }
+
+    function getProductAvailabilityIds() public returns(uint256[]){
+        return productsIdAvailable;
+    }
+
+    function viewRequests(address participantAddress) public returns(uint256){
+        return productRequestsForParticipant[msg.sender];
+    }
+
     
     event ProductCreated(address owner, uint256 productCost, uint256 productCode, uint256 productCount, uint256 productId);
     event ProductUpdated(address currentOwner, uint256 productCost, uint256 productCount, uint256 productId);
