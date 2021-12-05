@@ -163,7 +163,7 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         uint256 productCode,
         uint256 productCost,
         uint256 productCount
-        
+
     ) public onlyRegisteredParticipant() returns (uint256) {
         if(productCode == 0 || productCost == 0 || productCount == 0){
             revert();

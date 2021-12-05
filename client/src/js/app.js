@@ -57,6 +57,7 @@ App = {
   },
 
   bindEvents: function () {
+    $('#create-product').submit(App.handleCreateProduct);
     $(document).on('click', '#register', App.handleRegister);
     $(document).on('click', '#change-phase', App.handlePhase);
     $(document).on('click', '#generate-winner', App.handleWinner);
@@ -65,6 +66,20 @@ App = {
     $(document).on('click', '#withdraw-bid', App.handleWithdraw);
   },
   
+  handleCreateProduct: function(event) {
+    event.preventDefault();
+    const productCode = event.target[1].value
+    const productCost = event.target[2].value
+    const productCount = event.target[3].value
+    App.contracts.auction.deployed().then(function(instance) {
+      return instance.createProduct(productCode,productCost,productCount,{from:App.currentAccount});
+    }).then(function(result) {
+      console.log(result)
+      //product created succesfully
+    }).catch(console.error)
+
+  },
+
   getCurrentPhase: function() {
     App.contracts.auction.deployed().then(function(instance) {
       return instance.currentPhase();
