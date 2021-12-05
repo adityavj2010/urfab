@@ -40,29 +40,73 @@
         <span class="d-none" id="register-indicator">Loading</span>
         <div class="mb-2"></div>
         <div class="row">
-          <div class="col-8">
-          
-        <form id="create-product" >
-          <fieldset class="border p-3" >
-            <legend class="w-auto" style="font-size: 17px !important;">Create Product</legend>
-          <div class="mb-1">
-            <label for="productCode" class="form-label">Product Code</label>
-            <input type="number" inputmode="numeric" class="form-control" id="productCode" aria-describedby="emailHelp">
-          </div>
-          <div class="mb-1">
-            <label for="productCost" class="form-label">Product Cost</label>
-            <input type="number" inputmode="numeric" class="form-control" id="productCost">
-          </div>
-          <div class="mb-3">
-            <label for="productCount" class="form-label">Product Count</label>
-            <input type="number"  inputmode="numeric" class="form-control" id="productCount">
-          </div>
+          <div class="col">
+            <form id="get-product">
+              <fieldset class="border p-3 mb-3">
+                <legend class="w-auto" style="font-size: 17px !important">
+                  Get Product Details
+                </legend>
+                <div class="mb-3">
+                  <label for="productCode" class="form-label">Product ID</label>
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    class="form-control"
+                    id="productCode"
+                    aria-describedby="emailHelp"
+                  />
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  Get details
+                </button>
+                <div id="product-details" class="p-2"></div>
+              </fieldset>
+            </form>
 
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </fieldset>
-        </form>
-        </div>
+            <form id="create-product">
+              <fieldset class="border p-3">
+                <legend class="w-auto" style="font-size: 17px !important">
+                  Create Product
+                </legend>
+                <div class="mb-1">
+                  <label for="productCode" class="form-label"
+                    >Product Code</label
+                  >
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    class="form-control"
+                    id="productCode"
+                    aria-describedby="emailHelp"
+                  />
+                </div>
+                <div class="mb-1">
+                  <label for="productCost" class="form-label"
+                    >Product Cost</label
+                  >
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    class="form-control"
+                    id="productCost"
+                  />
+                </div>
+                <div class="mb-3">
+                  <label for="productCount" class="form-label"
+                    >Product Count</label
+                  >
+                  <input
+                    type="number"
+                    inputmode="numeric"
+                    class="form-control"
+                    id="productCount"
+                  />
+                </div>
 
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </fieldset>
+            </form>
+          </div>
         </div>
       </div>
     </div>

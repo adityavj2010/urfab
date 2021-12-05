@@ -50,23 +50,131 @@ App = {
         // result = result.toNumber()
         jQuery('#balance').text(result);
       })
-  
+      
       jQuery('#current_account').text(App.currentAccount);
+
       return App.bindEvents();
     });
   },
 
-  bindEvents: function () {
-    $('#create-product').submit(App.handleCreateProduct);
-    $(document).on('click', '#register', App.handleRegister);
-    $(document).on('click', '#change-phase', App.handlePhase);
-    $(document).on('click', '#generate-winner', App.handleWinner);
-    $(document).on('click', '#submit-reveal', App.handleReveal);
-    $(document).on('click', '#close-auction', App.handleClose);
-    $(document).on('click', '#withdraw-bid', App.handleWithdraw);
-  },
   
+  
+  getProductDetails: function(event) {
+    console.log('getProductDetails');
+    event.preventDefault();
+    const productId = event.target[1].value
+    if(productId==null)
+    {
+      return 
+    }
+    App.contracts.auction.deployed().then(function(instance) {
+      return instance.getProduct.call(productId,{from:App.currentAccount});
+    }).then(function(result) {
+      $('#product-details').empty()
+      const obj = {
+        productCode:result[0].toNumber(),
+        productCost:result[1].toNumber(),
+        manufacturer:result[2],
+        currentOwner:result[3],
+        productCount:result[4].toNumber(),
+        status:result[5].toNumber(),
+        buyer:result[6],
+      }
+      if(obj.status===1) {
+        obj.status='Requested';
+      } else if (obj.status===0) {
+        obj.status='Neutral';
+      } else {
+        obj.status='Sold';
+      }
+      if(obj.buyer=='0x0000000000000000000000000000000000000000')
+      {
+        obj.buyer = 'No bids yet'
+      }
+      if(obj.productCode===0)
+      {
+        $('#product-details').text('No product exits with id '+productId)
+        return 
+      }
+
+      const s = Object.keys(obj).map((key)=>{
+        return `${key} = ${obj[key]}`
+      }).join('<br>')
+      console.log('str',s)
+      $('#product-details').append(s+'<br>');
+      if(obj.currentOwner===App.currentAccount && obj.status==='Requested' && obj.buyer!==App.currentAccount) {
+        const accept = $(`<button class="btn btn-success me-2">Accept</button>`);
+        $('#product-details').append(accept);
+        accept.attr('id', 'accept');
+        accept.attr('product-id', productId);
+        $('#accept').click((event)=>{
+          event.preventDefault();
+          App.contracts.auction.deployed().then(function(instance) {
+            // uint256 productId, productState state, uint256 productCount, uint256 productCost, uint256 productCode
+            return instance.response(productId,2,obj.productCount,obj.productCost,obj.productCode,{from:App.currentAccount});
+          }).then(()=>{
+            App.getProductDetails({
+              preventDefault:()=>{},
+              target:[,{value:productId}]
+            })
+          })
+          console.log('Accepted')
+        })
+        const reject = $(`<button class="btn btn-danger">Reject</button>`);
+        $('#product-details').append(reject);
+        reject.attr('id', 'reject');
+        reject.attr('product-id', productId);
+        $('#reject').click((event)=>{
+          event.preventDefault();
+          App.contracts.auction.deployed().then(function(instance) {
+            // uint256 productId, productState state, uint256 productCount, uint256 productCost, uint256 productCode
+            return instance.response(productId,2,obj.productCount,obj.productCost,obj.productCode,{from:App.currentAccount});
+          }).then(()=>{
+            App.getProductDetails({
+              preventDefault:()=>{},
+              target:[,{value:productId}]
+            })
+          })
+          console.log('Rejected')
+        })
+
+        return 
+      }
+      if(obj.buyer===App.currentAccount && obj.currentOwner!==App.currentAccount)
+      { 
+
+      
+        $('#product-details').append(`<div class="alert alert-success" role="alert">
+        You have already requested a purchase, please wait for the owner to respond!
+  </div>`);
+        return 
+      }
+      if(obj.currentOwner!==App.currentAccount)
+      {
+        const purchase = $(`<button class="btn btn-primary">Purchase</button>`);
+        $('#product-details').append(purchase);
+        purchase.attr('id', 'buy');
+        purchase.attr('product-code', productId);
+        $('#buy').click((event)=>{
+          event.preventDefault();
+          App.contracts.auction.deployed().then(function(instance) {
+            return instance.request(productId,{from:App.currentAccount});
+          }).then(()=>{
+            App.getProductDetails({
+              preventDefault:()=>{},
+              target:[,{value:productId}]
+            })
+          })
+          console.log('purchase request generated')
+        })
+      }
+      //product created succesfully
+    }).catch(console.error)
+
+  },
+
   handleCreateProduct: function(event) {
+    console.log('handleCreateProduct')
     event.preventDefault();
     const productCode = event.target[1].value
     const productCost = event.target[2].value
@@ -74,7 +182,7 @@ App = {
     App.contracts.auction.deployed().then(function(instance) {
       return instance.createProduct(productCode,productCost,productCount,{from:App.currentAccount});
     }).then(function(result) {
-      console.log(result)
+      console.log('HANDLE CREATE',result)
       //product created succesfully
     }).catch(console.error)
 
@@ -278,7 +386,19 @@ App = {
     var notificationText = App.biddingPhases[phase];
     $('#phase-notification-text').text(notificationText.text);
     toastr.info(notificationText.text, "", { "iconClass": 'toast-info notification' + String(notificationText.id) });
-  }
+  },
+
+  bindEvents: function () {
+    $('#get-product').submit(App.getProductDetails)
+    // console.log('s',$('#create-product'))
+    $('#create-product').submit(App.handleCreateProduct);
+    $(document).on('click', '#register', App.handleRegister);
+    $(document).on('click', '#change-phase', App.handlePhase);
+    $(document).on('click', '#generate-winner', App.handleWinner);
+    $(document).on('click', '#submit-reveal', App.handleReveal);
+    $(document).on('click', '#close-auction', App.handleClose);
+    $(document).on('click', '#withdraw-bid', App.handleWithdraw);
+  },
 };
 
 
