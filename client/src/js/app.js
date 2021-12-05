@@ -28,12 +28,27 @@ App = {
       App.contracts.mycontract = data;
       App.contracts.auction.setProvider(App.web3Provider);
       App.currentAccount = web3.eth.coinbase;
-      // console.log('App',App);
+      console.log('App',App);
       App.contracts.auction.deployed().then(function(instance) {
         console.log('instance',instance)
-        return instance.name();
+        return instance.checkregistration.call(App.currentAccount);
+
       }).then(function(result) {
-        console.log({result})
+        // console.log('registered',result.toNumber()!==0
+        if(result.toNumber()!==0)
+        {
+          jQuery('#register').hide();
+          jQuery('#reg-status').text('User is already registered')
+        } 
+        
+      })
+      App.contracts.auction.deployed().then(function(instance) {
+        console.log('App.currentAccount',App.currentAccount)
+        return instance.balanceOf.call(App.currentAccount)
+      }).then(function(result) {
+        console.log('result',result.toNumber())
+        // result = result.toNumber()
+        jQuery('#balance').text(result);
       })
   
       jQuery('#current_account').text(App.currentAccount);
@@ -42,7 +57,7 @@ App = {
   },
 
   bindEvents: function () {
-    $(document).on('click', '#submit-bid', App.handleBid);
+    $(document).on('click', '#register', App.handleRegister);
     $(document).on('click', '#change-phase', App.handlePhase);
     $(document).on('click', '#generate-winner', App.handleWinner);
     $(document).on('click', '#submit-reveal', App.handleReveal);
@@ -76,6 +91,31 @@ App = {
       } else {
         $(".other-user").css("display", "inline");
       }
+    })
+  },
+
+  toggleLoader: function(id,show = false) {
+    if(show)
+    {
+      $("#"+id).removeClass("d-none");
+    } else {
+      $("#"+id).addClass("d-none");
+    }
+  } ,
+
+
+  handleRegister: function() {
+    console.log('hadnle1')
+    App.toggleLoader("register-indicator",true)
+    console.log('hadnle2')
+    App.contracts.auction.deployed().then((instance)=> {
+      return instance.registerParticipant(1,1,{from: App.currentAccount})
+    }).then((r)=>{
+      console.log('r handleRegister',r)
+      App.toggleLoader("register-indicator",false)
+    }).catch((e)=>{
+      console.log('e handleRegister',e)
+      App.toggleLoader("register-indicator",false)
     })
   },
 

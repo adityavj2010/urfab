@@ -217,10 +217,12 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         );
     }
 
-    function registerParticipant(uint256 userCodeName, Roles role) public returns (uint256) {
-        if(userCodeName == 0){
-            revert();
-        }
+    function registerParticipant(uint256 userCodeName, Roles role) public payable returns (uint256) {
+        require(msg.value == 2 ether);
+        balances[msg.sender] += msg.value; // track contributions by user 
+        // if(userCodeName == 0){
+        //     revert();
+        // }
         participantCounter++;
         uint256 participantId = participantCounter;
         address participantAddress = msg.sender;
