@@ -1,5 +1,5 @@
-// const urfabCode = artifacts.require("UrFabToken");
-const urfabCode = artifacts.require("UrfabCode");
+const urfabCode = artifacts.require("UrFabToken");
+// const urfabCode = artifacts.require("UrfabCode");
 
 /*
  * uncomment accounts to access the test accounts made available by the

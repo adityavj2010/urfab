@@ -5,30 +5,15 @@ App = {
   url: 'http://127.0.0.1:7545',
   chairPerson: null,
   currentAccount: null,
-  biddingPhases: {
-    "AuctionInit": { 'id': 0, 'text': "Bidding Not Started" },
-    "BiddingStarted": { 'id': 1, 'text': "Bidding Started" },
-    "RevealStarted": { 'id': 2, 'text': "Reveal Started" },
-    "AuctionEnded": { 'id': 3, 'text': "Auction Ended" }
-  },
-  auctionPhases: {
-    "0": "Bidding Not Started",
-    "1": "Bidding Started",
-    "2": "Reveal Started",
-    "3": "Auction Ended"
-  },
 
   init: function () {
-    console.log("Checkpoint 0");
     return App.initWeb3();
   },
 
   initWeb3: function () {
-    // Is there is an injected web3 instance?
     if (typeof web3 !== 'undefined') {
       App.web3Provider = web3.currentProvider;
     } else {
-      // If no injected web3 instance is detected, fallback to the TestRPC
       App.web3Provider = new Web3.providers.HttpProvider(App.url);
     }
     web3 = new Web3(App.web3Provider);
@@ -37,17 +22,21 @@ App = {
   },
 
   initContract: function () {
-    $.getJSON('BlindAuction.json', function (data) {
-      // Get the necessary contract artifact file and instantiate it with truffle-contract
-      var auctionArtifact = data;
+    $.getJSON('UrFabToken.json', function (data) {
+      let auctionArtifact = data;
       App.contracts.auction = TruffleContract(auctionArtifact);
       App.contracts.mycontract = data;
-      // Set the provider for our contract
       App.contracts.auction.setProvider(App.web3Provider);
       App.currentAccount = web3.eth.coinbase;
+      // console.log('App',App);
+      App.contracts.auction.deployed().then(function(instance) {
+        console.log('instance',instance)
+        return instance.name();
+      }).then(function(result) {
+        console.log({result})
+      })
+  
       jQuery('#current_account').text(App.currentAccount);
-      App.getCurrentPhase();
-      App.getChairperson();
       return App.bindEvents();
     });
   },

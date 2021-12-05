@@ -157,7 +157,7 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         uint256[] productsIdAvailable;
     }
 
-    mapping(uint256 => productsAvailable) public productList;
+    mapping(uint256 => productsAvailable) productList;
 
     function createProduct(
         uint256 productCode,
@@ -243,7 +243,7 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         address participantAddress = msg.sender;
         participants[participantAddress].role = Roles.Active;
         // productRequestsForParticipant[product[productId].currentOwner].productRequests.push(productId);
-        participants[product[productId].currentOwner].productRequests.push(productId);
+        participants[products[productId].currentOwner].productRequests.push(productId);
 
 
     }
@@ -251,7 +251,7 @@ contract UrFabToken is ERC20, SafeMath,Owned {
 
     function response(uint256 productId, productState state, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public payable{
         require(products[productId].currentOwner == msg.sender);
-        if(productId == 0 || state > 2 || productCount == 0 || productCost == 0 || productCode == 0){
+        if(productId == 0  || productCount == 0 || productCost == 0 || productCode == 0){
             revert();
         }
         // if (products[productId].hashOfDetails == hash){
@@ -268,7 +268,7 @@ contract UrFabToken is ERC20, SafeMath,Owned {
             }
 
             // delete productRequestsForParticipant[product[productId].currentOwner].productRequests[productId];
-            delete participants[product[productId].currentOwner].productRequests[productId];
+            delete participants[products[productId].currentOwner].productRequests[productId];
 
 
             // products[productId].currentOwner=products[productId].buyer;
@@ -301,24 +301,24 @@ contract UrFabToken is ERC20, SafeMath,Owned {
     // }
 
     function checkregistration(address participantAddress) public view returns(uint256){
-        if(participantAddress == 0){
-            revert();
-        }
+        
         if (participants[participantAddress].isRegistered){
             return participants[participantAddress].participantId;
         }
         return 0;
     }
 
-    function getProductAvailabilityIds() public view returns(uint256[] memory){
-        return productsAvailable[1].productsIdAvailable;
-    }
+    // function getProductAvailabilityIds() public view returns(uint256[] memory){
+    //     return productList[1].productsIdAvailable;
+    // }
 
-    function viewRequests(address participantAddress) public view returns(uint256){
-        if(participantAddress == 0){
-            revert();
+    function viewRequests() public view returns(uint256){
+        uint arrayLength = participants[msg.sender].productRequests.length;
+        if(arrayLength>0) {
+            return participants[msg.sender].productRequests[0];
         }
-        return participants[msg.sender].productRequests;
+        return 0;
+
     }
 
     
