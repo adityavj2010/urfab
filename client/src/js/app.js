@@ -111,14 +111,17 @@ App = {
           event.preventDefault();
           App.contracts.auction.deployed().then(function(instance) {
             // uint256 productId, productState state, uint256 productCount, uint256 productCost, uint256 productCode
-            return instance.response(productId,2,obj.productCount,obj.productCost,obj.productCode,{from:App.currentAccount});
+            return instance.response(productId,2,obj.productCount,obj.productCost,obj.productCode,{from:App.currentAccount,
+              gas: 4712388});
           }).then(()=>{
             App.getProductDetails({
               preventDefault:()=>{},
               target:[,{value:productId}]
             })
+          }).catch((e)=>{
+            console.log('RERE',e)
           })
-          console.log('Accepted')
+          
         })
         const reject = $(`<button class="btn btn-danger">Reject</button>`);
         $('#product-details').append(reject);
@@ -128,14 +131,13 @@ App = {
           event.preventDefault();
           App.contracts.auction.deployed().then(function(instance) {
             // uint256 productId, productState state, uint256 productCount, uint256 productCost, uint256 productCode
-            return instance.response(productId,2,obj.productCount,obj.productCost,obj.productCode,{from:App.currentAccount});
+            return instance.response({from:App.currentAccount});
           }).then(()=>{
             App.getProductDetails({
               preventDefault:()=>{},
               target:[,{value:productId}]
             })
           })
-          console.log('Rejected')
         })
 
         return 
@@ -151,7 +153,7 @@ App = {
       }
       if(obj.currentOwner!==App.currentAccount)
       {
-        const purchase = $(`<button class="btn btn-primary">Purchase</button>`);
+        const purchase = $(`<button class="btn btn-primary">Request</button>`);
         $('#product-details').append(purchase);
         purchase.attr('id', 'buy');
         purchase.attr('product-code', productId);

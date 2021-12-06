@@ -110,7 +110,8 @@ contract UrFabToken is ERC20, SafeMath,Owned {
     mapping (address=>uint) membership;
     
     modifier onlyRegisteredParticipant()
-    { require(membership[msg.sender] == 1);
+    { 
+        // require(membership[msg.sender] == 1);
         _;
     }
 
@@ -166,7 +167,7 @@ contract UrFabToken is ERC20, SafeMath,Owned {
 
     ) public onlyRegisteredParticipant() returns (uint256) {
         if(productCode == 0 || productCost == 0 || productCount == 0){
-            revert();
+            revert('createProduct');
         }
         productCounter++;
         uint256 productId = productCounter;
@@ -192,9 +193,9 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         public onlyRegisteredParticipant()
         returns (bool)
     {
-        require(products[productId].currentOwner == msg.sender);
+        require(products[productId].currentOwner == msg.sender,'updateProduct2');
         if(productId == 0 || productCount == 0 || productCost == 0 || productCode == 0){
-            revert();
+            revert('updateProduct');
         }
         products[productId].productCount = safeAdd(products[productId].productCount,productCount);
         products[productId].productCost = safeAdd(products[productId].productCost,productCost);
@@ -204,7 +205,7 @@ contract UrFabToken is ERC20, SafeMath,Owned {
 
     function getProduct(uint256 productId) public view onlyRegisteredParticipant() returns (uint256 ,uint256,address,address,uint256, productState, address) {
         if(productId == 0){
-            revert();
+            revert('getProduct');
         }
         return (
             products[productId].productCode,            
@@ -218,8 +219,6 @@ contract UrFabToken is ERC20, SafeMath,Owned {
     }
 
     function registerParticipant(uint256 userCodeName, Roles role) public payable returns (uint256) {
-        require(msg.value == 2 ether);
-        balances[msg.sender] += msg.value; // track contributions by user 
         // if(userCodeName == 0){
         //     revert();
         // }
@@ -237,7 +236,7 @@ contract UrFabToken is ERC20, SafeMath,Owned {
 
     function request(uint256 productId) onlyRegisteredParticipant public{
         if(productId == 0){
-            revert();
+            revert('request');
         }
         products[productId].status=productState.Requested;
         products[productId].buyer=msg.sender;
@@ -251,10 +250,11 @@ contract UrFabToken is ERC20, SafeMath,Owned {
     }
 
 
-    function response(uint256 productId, productState state, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public payable{
-        require(products[productId].currentOwner == msg.sender);
+    function response(uint256 productId, productState state, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public{
+        require(products[productId].currentOwner == msg.sender,'response');
+        // msg.value;
         if(productId == 0  || productCount == 0 || productCost == 0 || productCode == 0){
-            revert();
+            revert('response');
         }
         // if (products[productId].hashOfDetails == hash){
             products[productId].status=state;
@@ -282,9 +282,9 @@ contract UrFabToken is ERC20, SafeMath,Owned {
     }
 
     function addProductReview(uint256 productId, uint256 parameter_1_rating, uint256 parameter_2_rating, uint256 parameter_3_rating, uint256 overallRating, uint256 productCount, uint256 productCost, uint256 productCode) onlyRegisteredParticipant public{
-        require(products[productId].currentOwner == msg.sender);
+        require(products[productId].currentOwner == msg.sender,'addProductRe');
         if (productId == 0 || parameter_1_rating == 0 || parameter_2_rating == 0 || parameter_3_rating == 0 || overallRating == 0 || productCount == 0 || productCost == 0 || productCode == 0){
-            revert();
+            revert('addProductReview');
         }
         productReviewCounter++;
         productReviews[productId][productReviewCounter].reviewer = msg.sender;
@@ -298,8 +298,8 @@ contract UrFabToken is ERC20, SafeMath,Owned {
         // emit ProductReviewUpdated(msg.sender, parameter_1_rating, parameter_2_rating, parameter_3_rating, overallRating, productReviewCounter, productCost, productCount, productCode, productId);
     }
     
-    // function () public payable{
-    //     revert();
+    // function () public payable {
+        // revert();
     // }
 
     function checkregistration(address participantAddress) public view returns(uint256){
