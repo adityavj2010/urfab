@@ -85,31 +85,10 @@ contract UrFabToken is ERC20, SafeMath, Owned {
         success = true;
     }
 
-    // }
-
-    // contract UrfabCode is SafeMath, Owned {
-    enum Roles {
-        Inactive,
-        Active
-    }
-    enum productState {
-        Neutral,
-        Requested,
-        Sold
-    }
-    UrFabToken public token;
-
-    // constructor() public {
-    //     token = new UrFabToken();
-    // }
-
     struct participant {
-        uint256 userCodeName;
         address participantAddress;
         uint256 participantId;
-        Roles role;
         bool isRegistered;
-        uint256[] productRequests;
     }
 
     uint256 participantCounter = 0;
@@ -118,7 +97,7 @@ contract UrFabToken is ERC20, SafeMath, Owned {
     mapping(address => uint256) membership;
 
     modifier onlyRegisteredParticipant() {
-        // require(membership[msg.sender] == 1);
+        require(membership[msg.sender] == 1);
         _;
     }
 
@@ -126,39 +105,16 @@ contract UrFabToken is ERC20, SafeMath, Owned {
 
     uint256 productReviewCounter = 0;
 
-    struct productReview {
-        address reviewer;
-        uint256 parameter_1_rating;
-        uint256 parameter_2_rating;
-        uint256 parameter_3_rating;
-        uint256 overallRating;
-        uint256 productReviewNumber;
-        uint256 productId;
-    }
-
-    // ProductId_ReviewNumber to Reviews mapping
-    // mapping(uint256 => productReview) public productReviews;
-
-    // ProductId to ReviewNumber to Reviews mapping
-    mapping(uint256 => mapping(uint256 => productReview)) public productReviews;
-
     struct product {
-        uint256 uniqueRegNumer;
         uint256 productCost;
         uint256 productCode;
-        uint256 productCount;
-        address manufacturer;
         address currentOwner;
-        productState status;
+        uint16 status;
         address buyer;
-        uint256 hashOfDetails;
     }
 
     uint256[] productRequests;
     mapping(uint256 => product) public products;
-    // mapping(address => productRequests) public productRequestsForParticipant;
-
-    // uint256[] public productsIdAvailable;
 
     struct productsAvailable {
         uint256[] productsIdAvailable;
@@ -166,69 +122,21 @@ contract UrFabToken is ERC20, SafeMath, Owned {
 
     mapping(uint256 => productsAvailable) productList;
 
-    function createProduct(
-        uint256 productCode,
-        uint256 productCost,
-        uint256 productCount
-    ) public onlyRegisteredParticipant returns (uint256) {
-        if (productCode == 0 || productCost == 0 || productCount == 0) {
+    function createProduct(uint256 productCode, uint256 productCost)
+        public
+        onlyRegisteredParticipant
+        returns (uint256)
+    {
+        if (productCode == 0 || productCost == 0) {
             revert("createProduct");
         }
         productCounter++;
         uint256 productId = productCounter;
         products[productId].productCost = productCost;
         products[productId].productCode = productCode;
-        products[productId].manufacturer = msg.sender;
-        products[productId].productCount = productCount;
         products[productId].currentOwner = msg.sender;
-        products[productId].status = productState.Neutral;
-        address participantAddress = msg.sender;
-        participants[participantAddress].role = Roles.Active;
-
-        uint256 position = 1;
-
-        productList[position].productsIdAvailable.push(productId);
-
-        emit ProductCreated(
-            msg.sender,
-            productCost,
-            productCode,
-            productCount,
-            productId
-        );
-
+        products[productId].status = 0;
         return (productId);
-    }
-
-
-    function updateProduct(
-        uint256 productId,
-        uint256 productCount,
-        uint256 productCost,
-        uint256 productCode
-    ) public onlyRegisteredParticipant returns (bool) {
-        require(
-            products[productId].currentOwner == msg.sender,
-            "updateProduct2"
-        );
-        if (
-            productId == 0 ||
-            productCount == 0 ||
-            productCost == 0 ||
-            productCode == 0
-        ) {
-            revert("updateProduct");
-        }
-        products[productId].productCount = safeAdd(
-            products[productId].productCount,
-            productCount
-        );
-        products[productId].productCost = safeAdd(
-            products[productId].productCost,
-            productCost
-        );
-        emit ProductUpdated(msg.sender, productCost, productCount, productId);
-        return (true);
     }
 
     function getProduct(uint256 productId)
@@ -239,87 +147,57 @@ contract UrFabToken is ERC20, SafeMath, Owned {
             uint256,
             uint256,
             address,
-            address,
-            uint256,
-            productState,
+            uint16,
             address
         )
     {
-        if (productId == 0) {
-            revert("getProduct");
-        }
         return (
             products[productId].productCode,
             products[productId].productCost,
-            products[productId].manufacturer,
             products[productId].currentOwner,
-            products[productId].productCount,
             products[productId].status,
             products[productId].buyer
         );
     }
 
-    function registerParticipant(uint256 userCodeName, Roles role)
-        public
-        payable
-        returns (uint256)
-    {
-        // if(userCodeName == 0){
-        //     revert();
-        // }
+    function registerParticipant() public payable returns (uint256) {
         participantCounter++;
         uint256 participantId = participantCounter;
         address participantAddress = msg.sender;
-        participants[participantAddress].userCodeName = userCodeName;
         participants[participantAddress].participantAddress = msg.sender;
         participants[participantAddress].participantId = participantId;
-        participants[participantAddress].role = role;
         participants[participantAddress].isRegistered = true;
         membership[msg.sender] = 1;
         return (participantId);
     }
 
-    function getProductCounter() public view virtual returns (uint256 balance) {
-        balance = productCounter;
+    function getProductCounter() public view virtual returns (uint256) {
+        return productCounter;
     }
 
     function request(uint256 productId) public onlyRegisteredParticipant {
-        if (productId == 0) {
-            revert("request");
-        }
-        products[productId].status = productState.Requested;
+        products[productId].status = 1;
         products[productId].buyer = msg.sender;
-        // products[productId].hashOfDetails = hash;
-        address participantAddress = msg.sender;
-        participants[participantAddress].role = Roles.Active;
-        // productRequestsForParticipant[product[productId].currentOwner].productRequests.push(productId);
-        participants[products[productId].currentOwner].productRequests.push(
-            productId
-        );
     }
 
     function response(
         uint256 productId,
-        productState state,
-        uint256 productCount,
         uint256 productCost,
-        uint256 productCode
+        uint256 productCode,
+        uint16 status
     ) public onlyRegisteredParticipant {
         require(products[productId].currentOwner == msg.sender, "response");
-        // msg.value;
         if (
             productId == 0 ||
-            productCount == 0 ||
             productCost == 0 ||
             productCode == 0
         ) {
             revert("response");
         }
-        // if (products[productId].hashOfDetails == hash){
-        products[productId].status = state;
+        products[productId].status = 2;
         bool isTransacted = false;
 
-        if (state == productState.Sold) {
+        if (status == 2) {
             isTransacted = this.transferFrom(
                 products[productId].buyer,
                 products[productId].currentOwner,
@@ -329,79 +207,8 @@ contract UrFabToken is ERC20, SafeMath, Owned {
 
         if (isTransacted) {
             products[productId].currentOwner = products[productId].buyer;
-            emit ProductSold(
-                products[productId].buyer,
-                productCost,
-                productCount,
-                productId,
-                state
-            );
         }
-
-        // delete productRequestsForParticipant[product[productId].currentOwner].productRequests[productId];
-        delete participants[products[productId].currentOwner].productRequests[
-            productId
-        ];
-
-        // products[productId].currentOwner=products[productId].buyer;
-        // emit ProductSold(products[productId].buyer, productCost, productCount, productId, hash, state);
-        // }
-        // else{
-        //     revert();
-        // }
     }
-
-    function addProductReview(
-        uint256 productId,
-        uint256 parameter_1_rating,
-        uint256 parameter_2_rating,
-        uint256 parameter_3_rating,
-        uint256 overallRating,
-        uint256 productCount,
-        uint256 productCost,
-        uint256 productCode
-    ) public onlyRegisteredParticipant {
-        require(products[productId].currentOwner == msg.sender, "addProductRe");
-        if (
-            productId == 0 ||
-            parameter_1_rating == 0 ||
-            parameter_2_rating == 0 ||
-            parameter_3_rating == 0 ||
-            overallRating == 0 ||
-            productCount == 0 ||
-            productCost == 0 ||
-            productCode == 0
-        ) {
-            revert("addProductReview");
-        }
-        productReviewCounter++;
-        productReviews[productId][productReviewCounter].reviewer = msg.sender;
-        productReviews[productId][productReviewCounter]
-            .parameter_1_rating = parameter_1_rating;
-        productReviews[productId][productReviewCounter]
-            .parameter_2_rating = parameter_2_rating;
-        productReviews[productId][productReviewCounter]
-            .parameter_3_rating = parameter_3_rating;
-        productReviews[productId][productReviewCounter]
-            .overallRating = overallRating;
-        productReviews[productId][productReviewCounter]
-            .productReviewNumber = productReviewCounter;
-        productReviews[productId][productReviewCounter].productId = productId;
-        emit ProductReviewUpdated(
-            msg.sender,
-            parameter_1_rating,
-            parameter_2_rating,
-            parameter_3_rating,
-            overallRating,
-            productReviewCounter,
-            productId
-        );
-        // emit ProductReviewUpdated(msg.sender, parameter_1_rating, parameter_2_rating, parameter_3_rating, overallRating, productReviewCounter, productCost, productCount, productCode, productId);
-    }
-
-    // function () public payable {
-    // revert();
-    // }
 
     function checkregistration(address participantAddress)
         public
@@ -413,51 +220,4 @@ contract UrFabToken is ERC20, SafeMath, Owned {
         }
         return 0;
     }
-
-    // function getProductAvailabilityIds() public view returns(uint256[] memory){
-    //     return productList[1].productsIdAvailable;
-    // }
-
-    function viewRequests() public view returns (uint256) {
-        uint256 arrayLength = participants[msg.sender].productRequests.length;
-        if (arrayLength > 0) {
-            return participants[msg.sender].productRequests[0];
-        }
-        return 0;
-    }
-
-    event ProductCreated(
-        address owner,
-        uint256 productCost,
-        uint256 productCode,
-        uint256 productCount,
-        uint256 productId
-    );
-    event ProductUpdated(
-        address currentOwner,
-        uint256 productCost,
-        uint256 productCount,
-        uint256 productId
-    );
-    event ProductSold(
-        address currentOwner,
-        uint256 productCost,
-        uint256 productCount,
-        uint256 productId,
-        productState productStatus
-    );
-    event ProductReviewUpdated(
-        address productReviewer,
-        uint256 parameter_1_rating,
-        uint256 parameter_2_rating,
-        uint256 parameter_3_rating,
-        uint256 overallRating,
-        uint256 productReviewCounter,
-        uint256 productId
-    );
-
-    // event ProductCreated(address owner, uint256 productCost, uint256 productCode, uint256 productCount, uint256 productId);
-    // event ProductUpdated(address currentOwner, uint256 productCost, uint256 productCount, uint256 productCode, uint256 productId);
-    // event ProductSold(address currentOwner, uint256 productCost, uint256 productCount, uint256 productCode, uint256 productId, uint256 hashOfDetails, productState productStatus);
-    // event ProductReviewUpdated(address productReviewer, uint256 parameter_1_rating, uint256 parameter_2_rating, uint256 parameter_3_rating, uint256 overallRating, uint256 productReviewCounter, uint256 productCost, uint256 productCount, uint256 productCode, uint256 productId);
 }
