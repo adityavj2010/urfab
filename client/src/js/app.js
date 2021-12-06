@@ -51,13 +51,53 @@ App = {
         jQuery('#balance').text(result);
       })
       
+      App.contracts.auction.deployed().then(function(instance) {
+        return instance.getProductCounter.call({gasLimit:300000})
+      }).then(function(result) {
+        console.log('productCounter',result.toNumber()) 
+        App.loadPendingTransactions(result.toNumber())       
+      }).catch((e)=>console.warn('error',e))
+
       jQuery('#current_account').text(App.currentAccount);
 
       return App.bindEvents();
     });
   },
 
-  
+  loadPendingTransactions: async function(count) {
+    let i = 0;
+    let sol = [];
+    $('#pending-requests').empty()
+    for(i=1;i<count+1;i++)
+    {
+      const instance = await App.contracts.auction.deployed()
+      const result = await instance.getProduct.call(i,{from:App.currentAccount});
+      if(result[3] == App.currentAccount && result[5].toNumber()===1 && result[6]!==App.currentAccount)
+      {
+        sol.push(i);
+      }
+    }
+    if(sol.length==0) {
+      $('#pending-requests').text('None')
+    } else {
+      let temp = []
+      sol.forEach((id)=>{
+        let ob = `<a class='pending-request' req-id='${id}'>${id}</a> `
+        temp.push(ob)
+      })
+      $('#pending-requests').append(temp.join(','));
+      $('.pending-request').click((event)=>{
+        event.preventDefault();
+        App.getProductDetails({
+          preventDefault:()=>{},
+          target:[,{value:event.target.getAttribute('req-id')}]
+        })
+        // console.log('event',event.target.getAttribute('req-id'))
+
+      })
+    }
+    console.log('soll',sol);
+  },
   
   getProductDetails: function(event) {
     console.log('getProductDetails');
@@ -112,7 +152,7 @@ App = {
           App.contracts.auction.deployed().then(function(instance) {
             // uint256 productId, productState state, uint256 productCount, uint256 productCost, uint256 productCode
             return instance.response(productId,2,obj.productCount,obj.productCost,obj.productCode,{from:App.currentAccount,
-              gas: 4712388});
+              gas: 3000000,value:0,gasLimit:300000});
           }).then(()=>{
             App.getProductDetails({
               preventDefault:()=>{},
@@ -144,8 +184,6 @@ App = {
       }
       if(obj.buyer===App.currentAccount && obj.currentOwner!==App.currentAccount)
       { 
-
-      
         $('#product-details').append(`<div class="alert alert-success" role="alert">
         You have already requested a purchase, please wait for the owner to respond!
   </div>`);
@@ -234,7 +272,7 @@ App = {
     App.toggleLoader("register-indicator",true)
     console.log('hadnle2')
     App.contracts.auction.deployed().then((instance)=> {
-      return instance.registerParticipant(1,1,{from: App.currentAccount})
+      return instance.registerParticipant(1,1,{from: App.currentAccount,gas:3000000,gasLimit:3000000})
     }).then((r)=>{
       console.log('r handleRegister',r)
       App.toggleLoader("register-indicator",false)
