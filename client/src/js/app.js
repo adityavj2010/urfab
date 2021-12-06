@@ -21,13 +21,13 @@ App = {
 
   initContract: function () {
     $.getJSON("UrFabToken.json", function (data) {
-      let auctionArtifact = data;
-      App.contracts.auction = TruffleContract(auctionArtifact);
+      let urfabArtifact = data;
+      App.contracts.urfab = TruffleContract(urfabArtifact);
       App.contracts.mycontract = data;
-      App.contracts.auction.setProvider(App.web3Provider);
+      App.contracts.urfab.setProvider(App.web3Provider);
       App.currentAccount = web3.eth.coinbase;
       console.log("App", App);
-      App.contracts.auction
+      App.contracts.urfab
         .deployed()
         .then(function (instance) {
           console.log("instance", instance);
@@ -37,22 +37,13 @@ App = {
           // console.log('registered',result.toNumber()!==0
           if (result.toNumber() !== 0) {
             jQuery("#register").hide();
+            $('#post-register').removeClass('d-none')
+
             jQuery("#reg-status").text("User is already registered");
           }
         });
-      App.contracts.auction
-        .deployed()
-        .then(function (instance) {
-          console.log("App.currentAccount", App.currentAccount);
-          return instance.balanceOf.call(App.currentAccount);
-        })
-        .then(function (result) {
-          console.log("result", result.toNumber());
-          // result = result.toNumber()
-          jQuery("#balance").text(result);
-        });
-
-      App.contracts.auction
+      App.getBalance()
+      App.contracts.urfab
         .deployed()
         .then(function (instance) {
           return instance.getProductCounter.call({ gasLimit: 300000 });
@@ -69,13 +60,28 @@ App = {
     });
   },
 
+  getBalance: function () {
+    App.contracts.urfab
+    .deployed()
+    .then(function (instance) {
+      console.log("App.currentAccount", App.currentAccount);
+      return instance.balanceOf.call(App.currentAccount);
+    })
+    .then(function (result) {
+      console.log("result", result.toNumber());
+      // result = result.toNumber()
+      jQuery("#balance").text(result);
+    });
+
+  },
+
   loadPendingTransactions: async function (count) {
     let i = 0;
     let sol = [];
     $("#pending-requests").empty();
     for (i = 1; i < count + 1; i++) {
       try {
-        const instance = await App.contracts.auction.deployed();
+        const instance = await App.contracts.urfab.deployed();
         const result = await instance.getProduct.call(i, {
           from: App.currentAccount,
         });
@@ -126,7 +132,7 @@ App = {
     if (productId == null) {
       return;
     }
-    App.contracts.auction
+    App.contracts.urfab
       .deployed()
       .then(function (instance) {
         return instance.getProduct.call(productId, {
@@ -179,7 +185,7 @@ App = {
           accept.attr("product-id", productId);
           $("#accept").click((event) => {
             event.preventDefault();
-            App.contracts.auction
+            App.contracts.urfab
               .deployed()
               .then(function (instance) {
                 // uint256 productId,
@@ -203,10 +209,13 @@ App = {
                 );
               })
               .then(() => {
-                App.getProductDetails({
-                  preventDefault: () => {},
-                  target: [, { value: productId }],
-                });
+                alert('Transaction Completed')
+                location.reload()
+                // App.getProductDetails({
+                //   preventDefault: () => {},
+                //   target: [, { value: productId }],
+                // });
+                
               })
               .catch((e) => {
                 console.log("RERE", e);
@@ -218,7 +227,7 @@ App = {
           reject.attr("product-id", productId);
           $("#reject").click((event) => {
             event.preventDefault();
-            App.contracts.auction
+            App.contracts.urfab
               .deployed()
               .then(function (instance) {
                 return instance.response(
@@ -258,7 +267,7 @@ App = {
           purchase.attr("product-code", productId);
           $("#buy").click((event) => {
             event.preventDefault();
-            App.contracts.auction
+            App.contracts.urfab
               .deployed()
               .then(function (instance) {
                 return instance.request(productId, {
@@ -284,7 +293,7 @@ App = {
     event.preventDefault();
     const productCode = event.target[1].value;
     const productCost = event.target[2].value;
-    App.contracts.auction
+    App.contracts.urfab
       .deployed()
       .then(function (instance) {
         return instance.createProduct(productCode, productCost, {
@@ -294,6 +303,8 @@ App = {
         });
       })
       .then(function (result) {
+        alert('Product Created')
+
         //product created succesfully
       })
       .catch(console.error);
@@ -311,7 +322,7 @@ App = {
     console.log("hadnle1");
     App.toggleLoader("register-indicator", true);
     console.log("hadnle2");
-    App.contracts.auction
+    App.contracts.urfab
       .deployed()
       .then((instance) => {
         return instance.registerParticipant({
@@ -322,6 +333,8 @@ App = {
       })
       .then((r) => {
         console.log("r handleRegister", r);
+        location.reload();
+        $('#post-register').removeClass('d-none')
         App.toggleLoader("register-indicator", false);
       })
       .catch((e) => {
