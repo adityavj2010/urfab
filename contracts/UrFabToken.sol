@@ -194,7 +194,7 @@ contract UrFabToken is ERC20, SafeMath, Owned {
         ) {
             revert("response");
         }
-        products[productId].status = 2;
+        products[productId].status = status;
         bool isTransacted = false;
 
         if (status == 2) {
